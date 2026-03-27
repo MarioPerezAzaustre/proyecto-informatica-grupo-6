@@ -1,30 +1,33 @@
 #paso 1
 class Airport:
-  def __init__(self, code, lat, lon):
-      self.code = code
-      self.lat = lat
-      self.lon = lon
-      self.schengen = False
+    def __init__(self, codigo, latitud, longitud):
+        self.codigo = codigo
+        self.latitud = latitud
+        self.longitud = longitud
+        self.schengen = False
 
 
-def IsSchengenAirport(code):
-   schengen_prefixes = ['LO', 'EB', 'LK', 'LC', 'EK', 'EE', 'EF', 'LF', 'ED', 'LG', 'EH', 'LH', 'BI', 'LI', 'EV', 'EY', 'EL', 'LM', 'EN', 'EP', 'LP', 'LZ', 'LJ', 'LE','ES', 'LS' ]
-   if code[0:2] in schengen_prefixes:
-       return True
-   else:
-       return False
+def IsSchengenAirport(codigo):
+    if not codigo:
+        return False
+
+    prefijos_schengen = ['LO', 'EB', 'LK', 'LC', 'EK', 'EE', 'EF', 'LF', 'ED', 'LG', 'EH', 'LH', 'BI', 'LI', 'EV', 'EY', 'EL', 'LM', 'EN', 'EP', 'LP', 'LZ', 'LJ', 'LE', 'ES', 'LS']
+
+    if codigo[0:2] in prefijos_schengen:
+        return True
+    else:
+        return False
 
 
-def SetSchengen(airport):
-  airport.schengen = IsSchengenAirport(airport.code)
+def SetSchengen(aeropuerto):
+    aeropuerto.schengen = IsSchengenAirport(aeropuerto.codigo)
 
 
-def PrintAirport(airport):
-  print(f"Código: {airport.code}")
-  print(f"Coordenadas: {airport.lat}, {airport.lon}")
-  print(f"Schengen: {airport.schengen}")
-  print("-" * 20)
-
+def PrintAirport(aeropuerto):
+    print(f"Código: {aeropuerto.codigo}")
+    print(f"Coordenadas: {aeropuerto.latitud}, {aeropuerto.longitud}")
+    print(f"Schengen: {aeropuerto.schengen}")
+    print("-" * 20)
 
 #paso 3
 def LoadAirports(filename):

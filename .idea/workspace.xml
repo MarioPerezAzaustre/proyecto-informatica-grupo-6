@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="330996bc-d950-42ff-8dc1-fbbc5f7ee73e" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/SchengenAirports.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -77,7 +77,7 @@
       <workItem from="1774377468123" duration="9282000" />
       <workItem from="1774387734561" duration="10000" />
       <workItem from="1774639652692" duration="948000" />
-      <workItem from="1774643142480" duration="1883000" />
+      <workItem from="1774643142480" duration="3274000" />
     </task>
     <servers />
   </component>

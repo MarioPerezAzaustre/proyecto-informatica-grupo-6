@@ -106,29 +106,21 @@ tk.Label(frame_inputs, text="Longitud:", bg=color_fondo, fg="black").grid(row=0,
 entrada_lon = tk.Entry(frame_inputs, width=12, bg="white", fg="black")
 entrada_lon.grid(row=0, column=5, padx=5, pady=10)
 
-tk.Button(frame_inputs, text="Anadir a la Lista", command=agregar_nuevo, bg=color_anadir, fg="black",
-          font=("Helvetica", 9, "bold")).grid(row=1, column=1, columnspan=2, padx=10, pady=10)
-tk.Button(frame_inputs, text="Borrar por Codigo", command=eliminar_existente, bg=color_borrar, fg="black",
-          font=("Helvetica", 9, "bold")).grid(row=1, column=3, columnspan=2, padx=10, pady=10)
+tk.Button(frame_inputs, text="Anadir a la Lista", command=agregar_nuevo, bg=color_anadir, fg="black",  font=("Helvetica", 9, "bold")).grid(row=1, column=1, columnspan=2, padx=10, pady=10)
+tk.Button(frame_inputs, text="Borrar por Codigo", command=eliminar_existente, bg=color_borrar, fg="black", font=("Helvetica", 9, "bold")).grid(row=1, column=3, columnspan=2, padx=10, pady=10)
 
 frame_datos = tk.LabelFrame(root, text=" 2. Gestion de Datos ", bg=color_fondo, fg="black")
 frame_datos.grid(row=1, column=0, padx=15, pady=5)
 
-tk.Button(frame_datos, text="Cargar TXT", command=cargar_archivo, bg=color_datos, fg="black", width=22,
-          font=("Helvetica", 10, "bold")).grid(row=0, column=0, padx=10, pady=8)
-tk.Button(frame_datos, text="Evaluar Schengen", command=marcar_schengen, bg=color_datos, fg="black", width=22,
-          font=("Helvetica", 10, "bold")).grid(row=1, column=0, padx=10, pady=8)
-tk.Button(frame_datos, text="Ver Lista (Ventana)", command=ver_datos, bg=color_datos, fg="black", width=22,
-          font=("Helvetica", 10, "bold")).grid(row=2, column=0, padx=10, pady=8)
-tk.Button(frame_datos, text="Guardar Schengen", command=guardar_txt, bg=color_datos, fg="black", width=22,
-          font=("Helvetica", 10, "bold")).grid(row=3, column=0, padx=10, pady=8)
+tk.Button(frame_datos, text="Cargar TXT", command=cargar_archivo, bg=color_datos, fg="black", width=22, font=("Helvetica", 10, "bold")).grid(row=0, column=0, padx=10, pady=8)
+tk.Button(frame_datos, text="Evaluar Schengen", command=marcar_schengen, bg=color_datos, fg="black", width=22, font=("Helvetica", 10, "bold")).grid(row=1, column=0, padx=10, pady=8)
+tk.Button(frame_datos, text="Ver Lista (Ventana)", command=ver_datos, bg=color_datos, fg="black", width=22, font=("Helvetica", 10, "bold")).grid(row=2, column=0, padx=10, pady=8)
+tk.Button(frame_datos, text="Guardar Schengen", command=guardar_txt, bg=color_datos, fg="black", width=22, font=("Helvetica", 10, "bold")).grid(row=3, column=0, padx=10, pady=8)
 
 frame_visual = tk.LabelFrame(root, text=" 3. Graficos y Mapas ", bg=color_fondo, fg="black")
 frame_visual.grid(row=1, column=1, padx=15, pady=5, sticky=tk.N)
 
-tk.Button(frame_visual, text="Ver Grafica de Barras", command=mostrar_grafica, bg=color_visual, fg="black", width=22,
-          font=("Helvetica", 10, "bold")).grid(row=0, column=0, padx=10, pady=8)
-tk.Button(frame_visual, text="Generar Mapa KML", command=mostrar_mapa, bg=color_visual, fg="black", width=22,
-          font=("Helvetica", 10, "bold")).grid(row=1, column=0, padx=10, pady=8)
+tk.Button(frame_visual, text="Ver Grafica de Barras", command=mostrar_grafica, bg=color_visual, fg="black", width=22, font=("Helvetica", 10, "bold")).grid(row=0, column=0, padx=10, pady=8)
+tk.Button(frame_visual, text="Generar Mapa KML", command=mostrar_mapa, bg=color_visual, fg="black", width=22, font=("Helvetica", 10, "bold")).grid(row=1, column=0, padx=10, pady=8)
 
 root.mainloop()

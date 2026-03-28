@@ -18,7 +18,6 @@ def IsSchengenAirport(codigo):
     else:
         return False
 
-
 def SetSchengen(aeropuerto):
     aeropuerto.schengen = IsSchengenAirport(aeropuerto.codigo)
 
@@ -30,10 +29,10 @@ def PrintAirport(aeropuerto):
     print("-" * 20)
 
 #paso 3
-def LoadAirports(filename):
+def LoadAirports(nombre_archivo):
     lista_aeropuertos = []
     try:
-        f = open(filename, "r")
+        f = open(nombre_archivo, "r")
         lineas = f.readlines()
         f.close()
 
@@ -71,7 +70,6 @@ def LoadAirports(filename):
     except:
         return []
 
-
 def FormatCoord(valor, es_latitud):
     if valor < 0:
         valor_positivo = -valor
@@ -92,10 +90,10 @@ def FormatCoord(valor, es_latitud):
     segundos = int((resto_minutos - minutos) * 60)
 
     if segundos == 60:
-        minutos += 1
+        minutos = minutos + 1
         segundos = 0
     if minutos == 60:
-        grados += 1
+        grados = grados + 1
         minutos = 0
 
     if es_latitud:
@@ -103,40 +101,110 @@ def FormatCoord(valor, es_latitud):
     else:
         return f"{direccion}{grados:03d}{minutos:02d}{segundos:02d}"
 
-
-def SaveSchengenAirports(airports, filename):
-    if len(airports) == 0:
+def SaveSchengenAirports(lista_aeropuertos, nombre_archivo):
+    if len(lista_aeropuertos) == 0:
         return -1
 
     try:
-        f = open(filename, "w")
+        f = open(nombre_archivo, "w")
         f.write("CODE LAT LON\n")
 
-        for apt in airports:
-            if apt.schengen == True:
-                lat_texto = FormatCoord(apt.lat, True)
-                lon_texto = FormatCoord(apt.lon, False)
-                f.write(apt.code + " " + lat_texto + " " + lon_texto + "\n")
+        for aeropuerto in lista_aeropuertos:
+            if aeropuerto.schengen == True:
+                lat_texto = FormatCoord(aeropuerto.latitud, True)
+                lon_texto = FormatCoord(aeropuerto.longitud, False)
+                f.write(aeropuerto.codigo + " " + lat_texto + " " + lon_texto + "\n")
 
         f.close()
         return 0
     except:
         return -1
 
-
-def AddAirport(airports, airport):
+def AddAirport(lista_aeropuertos, nuevo_aeropuerto):
     encontrado = False
-    for a in airports:
-        if a.code == airport.code:
+    for a in lista_aeropuertos:
+        if a.codigo == nuevo_aeropuerto.codigo:
             encontrado = True
 
     if not encontrado:
-        airports.append(airport)
+        lista_aeropuertos.append(nuevo_aeropuerto)
 
 
-def RemoveAirport(airports, code):
-    for i in range(len(airports)):
-        if airports[i].code == code:
-            del airports[i]
-            return 0
-    return -1
+def RemoveAirport(lista_aeropuertos, codigo_aeropuerto):
+    lista_temporal = []
+    resultado = -1
+
+    for a in lista_aeropuertos:
+        if a.codigo == codigo_aeropuerto:
+            resultado = 0
+        else:
+            lista_temporal.append(a)
+
+    if resultado == 0:
+        lista_aeropuertos.clear()
+        for a in lista_temporal:
+            lista_aeropuertos.append(a)
+
+    return resultado
+#paso 5
+import matplotlib.pyplot as plt
+
+def PlotAirports(lista_aeropuertos):
+    if len(lista_aeropuertos) == 0:
+        return
+
+    schengen_count = 0
+    no_schengen_count = 0
+
+    for aeropuerto in lista_aeropuertos:
+        if aeropuerto.schengen:
+            schengen_count = schengen_count + 1
+        else:
+            no_schengen_count = no_schengen_count + 1
+
+    total_aeropuertos = schengen_count + no_schengen_count
+
+    plt.bar([1], [total_aeropuertos], color='red', label='No Schengen')
+
+    plt.bar([1], [schengen_count], color='blue', label='Schengen')
+
+    plt.ylabel("Airports")
+    plt.title("Schengen airports")
+    plt.legend()
+    plt.show()
+
+
+def MapAirports(lista_aeropuertos):
+    if len(lista_aeropuertos) == 0:
+        print("La lista de aeropuertos está vacía.")
+        return
+
+    try:
+        f = open("mapa_aeropuertos.kml", "w")
+        f.write('<?xml version="1.0" encoding="UTF-8"?>\n')
+        f.write('<kml xmlns="http://www.opengis.net/kml/2.2">\n')
+        f.write('<Document>\n')
+
+        f.write('<Style id="schengenStyle">\n<IconStyle>\n<color>ffff0000</color>\n</IconStyle>\n</Style>\n')
+        f.write('<Style id="noSchengenStyle">\n<IconStyle>\n<color>ff0000ff</color>\n</IconStyle>\n</Style>\n')
+
+        for aeropuerto in lista_aeropuertos:
+            if aeropuerto.schengen:
+                estilo = "#schengenStyle"
+            else:
+                estilo = "#noSchengenStyle"
+
+            f.write('<Placemark>\n')
+            f.write(f'<name>{aeropuerto.codigo}</name>\n')
+            f.write(f'<styleUrl>{estilo}</styleUrl>\n')
+            f.write('<Point>\n')
+            f.write(f'<coordinates>{aeropuerto.longitud},{aeropuerto.latitud}</coordinates>\n')
+            f.write('</Point>\n')
+            f.write('</Placemark>\n')
+
+        f.write('</Document>\n')
+        f.write('</kml>\n')
+        f.close()
+        print("Archivo 'mapa_aeropuertos.kml' generado con éxito.")
+    except:
+        print("Error al generar el mapa KML.")

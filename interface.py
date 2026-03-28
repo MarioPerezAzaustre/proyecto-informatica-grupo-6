@@ -1,4 +1,3 @@
-#paso 6
 import tkinter as tk
 from tkinter import messagebox
 from airport import *
@@ -14,8 +13,7 @@ mis_aeropuertos = []
 def cargar_archivo():
     datos_temporales = LoadAirports("Airports.txt")
 
-    while len(mis_aeropuertos) > 0:
-        del mis_aeropuertos[0]
+    mis_aeropuertos[:] = []
 
     for aeropuerto in datos_temporales:
         mis_aeropuertos.append(aeropuerto)
@@ -135,4 +133,3 @@ tk.Button(frame_visual, text="Generar Mapa KML", command=mostrar_mapa, bg=color_
 root.mainloop()
 
 #Las funciones "Toplevel", "Listbox" y "Scrollbar" son de fuentes externas para crear la ventana emergente ya que si no los aeropuertos no cabian en la pantalla
-

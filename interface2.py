@@ -14,7 +14,7 @@ mis_aeropuertos = []
 def cargar_archivo():
     datos_temporales = LoadAirports("Airports.txt")
 
-    mis_aeropuertos.clear()
+    mis_aeropuertos[:] = []
 
     for aeropuerto in datos_temporales:
         mis_aeropuertos.append(aeropuerto)

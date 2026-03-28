@@ -2,10 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="330996bc-d950-42ff-8dc1-fbbc5f7ee73e" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/interface.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/airport.py" beforeDir="false" afterPath="$PROJECT_DIR$/airport.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test_airport.py" beforeDir="false" afterPath="$PROJECT_DIR$/test_airport.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/interface.py" beforeDir="false" afterPath="$PROJECT_DIR$/interface.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -83,7 +81,7 @@
       <workItem from="1774377468123" duration="9282000" />
       <workItem from="1774387734561" duration="10000" />
       <workItem from="1774639652692" duration="948000" />
-      <workItem from="1774643142480" duration="24120000" />
+      <workItem from="1774643142480" duration="25008000" />
     </task>
     <servers />
   </component>
@@ -94,7 +92,7 @@
     <SUITE FILE_PATH="coverage/proyecto_info_grupo_6$airport.coverage" NAME="airport Coverage Results" MODIFIED="1774663705890" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/proyecto_info_grupo_6$2.coverage" NAME="2 Coverage Results" MODIFIED="1774736191050" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/proyecto_info_grupo_6$j.coverage" NAME="j Coverage Results" MODIFIED="1774385316827" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/proyecto_info_grupo_6$interface.coverage" NAME="interface Coverage Results" MODIFIED="1774736321840" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/proyecto_info_grupo_6$interface.coverage" NAME="interface Coverage Results" MODIFIED="1774737321475" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/proyecto_info_grupo_6$interface2.coverage" NAME="interface2 Coverage Results" MODIFIED="1774736324917" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/proyecto_info_grupo_6$test_airport.coverage" NAME="test_airport Coverage Results" MODIFIED="1774731659990" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>

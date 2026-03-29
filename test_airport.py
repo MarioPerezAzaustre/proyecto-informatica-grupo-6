@@ -21,15 +21,10 @@ PrintAirport(aeropuerto_baires)
 lista_aeropuertos = LoadAirports("Airports.txt")
 print(f"Se han cargado {len(lista_aeropuertos)} aeropuertos desde el archivo.")
 
-if len(lista_aeropuertos) > 0:
-    print("Datos del primer aeropuerto cargado:")
-    PrintAirport(lista_aeropuertos[0])
-
-
-nuevo_aeropuerto = Airport("LEMD", 40.471926, -3.56264)
+nuevo_aeropuerto = Airport("HND", 35.5494, 139.7798)
 SetSchengen(nuevo_aeropuerto)
 AddAirport(lista_aeropuertos, nuevo_aeropuerto)
-print(f"Ahora hay {len(lista_aeropuertos)} aeropuertos tras intentar añadir LEMD.")
+print(f"Ahora hay {len(lista_aeropuertos)} aeropuertos tras intentar añadir HND.")
 
 
 resultado_borrar = RemoveAirport(lista_aeropuertos, "KJFK")
@@ -37,6 +32,7 @@ if resultado_borrar == 0:
     print("Aeropuerto KJFK borrado exitosamente de la lista.")
 else:
     print("No se pudo borrar KJFK (correctamente detectado como no existente en la lista).")
+print(f"Ahora hay {len(lista_aeropuertos)} aeropuertos tras borrar/intentar borrar KJFK.")
 
 
 for aeropuerto in lista_aeropuertos:

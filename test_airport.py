@@ -43,3 +43,10 @@ if resultado_guardar == 0:
     print("Archivo 'SchengenAirports.txt' creado y guardado exitosamente.")
 else:
     print("Error al guardar el archivo o la lista estaba vacía.")
+
+#paso 5
+PlotAirports(lista_aeropuertos)
+
+print("Generando archivo KML para Google Earth...")
+MapAirports(lista_aeropuertos)
+print("Archivo 'Airports.kml' creado exitosamente. ¡Ya puedes abrirlo en Google Earth!")

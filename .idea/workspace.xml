@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="330996bc-d950-42ff-8dc1-fbbc5f7ee73e" name="Changes" comment="" />
+    <list default="true" id="330996bc-d950-42ff-8dc1-fbbc5f7ee73e" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/interface con scroll.py" beforeDir="false" afterPath="$PROJECT_DIR$/interface con scroll.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />

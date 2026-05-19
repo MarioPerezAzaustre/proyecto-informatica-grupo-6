@@ -1,6 +1,11 @@
 import math
 import matplotlib.pyplot as plt
 import airport
+import tkinter as tk
+from tkinter import messagebox
+from tkinter import filedialog
+from matplotlib.figure import Figure
+import os
 
 class Aircraft:
     def __init__(self, id, company, origin, time):
@@ -50,7 +55,7 @@ def SaveFlights(aircrafts, filename):
 
 def PlotArrivals(aircrafts):
     if len(aircrafts) == 0:
-        print("Error: La lista de vuelos está vacía. No se mostrará la gráfica.")
+        messagebox.showwarning("Error en la lista","Estas seguro que es esta lista?")
         return
     horas = [0] * 24
     for ac in aircrafts:
@@ -60,36 +65,35 @@ def PlotArrivals(aircrafts):
                 horas[h] = horas[h] + 1
         except:
             continue
-    plt.figure()
-    plt.bar(range(24), horas)
-    plt.xlabel("Hora del día")
-    plt.ylabel("Número de aterrizajes")
-    plt.title("Frecuencia de aterrizajes en LEBL")
-    plt.show()
+    fig = Figure(figsize=(5, 4), dpi=100)
+    ax = fig.add_subplot(111)
+
+    ax.bar(range(24), horas)
+    ax.set_xlabel("Hora del día")
+    ax.set_ylabel("Número de aterrizajes")
+    ax.set_title("Frecuencia de aterrizajes en LEBL")
+    return fig
 
 
 def PlotAirlines(aircrafts):
-    if len(aircrafts) == 0:
-        print("Error: La lista de vuelos está vacía. No se mostrará la gráfica.")
-        return
+    if not aircrafts:
+        return None
+
     conteo = {}
     for ac in aircrafts:
         cia = ac.company
-        if cia in conteo:
-            conteo[cia] = conteo[cia] + 1
-        else:
-            conteo[cia] = 1
-    plt.figure(figsize=(12, 6))
-    plt.bar(conteo.keys(), conteo.values(), color='orange')
-    plt.title("Vuelos por Aerolínea")
-    plt.xticks(rotation=90, fontsize=8)
-    plt.tight_layout()
-    plt.show()
-
+        conteo[cia] = conteo.get(cia, 0) + 1
+    fig = Figure(figsize=(5, 4), dpi=100)
+    ax = fig.add_subplot(111)
+    ax.bar(conteo.keys(), conteo.values(), color='orange', edgecolor='black')
+    ax.set_title("Vuelos por Aerolínea")
+    ax.tick_params(axis='x', rotation=45, labelsize=8)
+    fig.tight_layout()
+    return fig
 
 def PlotFlightsType(aircrafts):
     if len(aircrafts) == 0:
-        print("Error: La lista de vuelos está vacía. No se mostrará la gráfica.")
+        messagebox.showwarning("Error en la lista","Estas seguro que es esta lista?")
         return
     schengen_count = 0
     no_schengen_count = 0
@@ -98,12 +102,12 @@ def PlotFlightsType(aircrafts):
             schengen_count += 1
         else:
             no_schengen_count += 1
-    plt.figure()
-    plt.bar(["Arrivals"], [schengen_count], color='blue', label='Schengen', width=0.5)
-    plt.bar(["Arrivals"], [no_schengen_count], bottom=[schengen_count], color='red', label='No Schengen', width=0.5)
-    plt.title("Distribución Schengen / No Schengen")
-    plt.legend()
-    plt.show()
+    fig = Figure(figsize=(5, 4), dpi=100)
+    ax = fig.add_subplot(111)
+    ax.bar(["Arrivals"], [schengen_count], color='blue', label='Schengen', width=0.5)
+    ax.bar(["Arrivals"], [no_schengen_count], bottom=[schengen_count], color='red', label='No Schengen', width=0.5)
+    ax.set_title("Distribución Schengen / No Schengen")
+    return fig
 
 
 def Haversine(lat1, lon1, lat2, lon2):
@@ -142,7 +146,7 @@ def LongDistanceArrivals(aircrafts):
 
 def MapFlights(aircrafts):
     if len(aircrafts) == 0:
-        print("Error: La lista de vuelos está vacía. No se generará el mapa.")
+        messagebox.showerror("Error: La lista de vuelos está vacía. No se generará el mapa.")
         return
 
     lista_aeropuertos = airport.LoadAirports("Airports.txt")
@@ -172,8 +176,10 @@ def MapFlights(aircrafts):
                 f.write('</coordinates></LineString>\n</Placemark>\n')
         f.write('</Document>\n</kml>\n')
         f.close()
-    except:
-        pass
+        os.startfile('Rutas_Barcelona.kml')
+
+    except Exception as e:
+        messagebox.showerror("Error", f"no se ha podido crear, error: {e}")
 
 
 if __name__ == "__main__":

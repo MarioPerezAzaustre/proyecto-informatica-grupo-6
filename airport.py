@@ -1,4 +1,12 @@
 #paso 1
+import tkinter as tk
+from logging import exception
+from tkinter import messagebox
+from tkinter import filedialog
+from matplotlib.figure import Figure
+import matplotlib.pyplot as plt
+import os
+
 class Airport:
     def __init__(self, codigo, latitud, longitud):
         self.codigo = codigo
@@ -9,6 +17,7 @@ class Airport:
 
 def IsSchengenAirport(codigo):
     if not codigo:
+        messagebox.showerror("Error","No hay lista")
         return False
 
     prefijos_schengen = ['LO', 'EB', 'LK', 'LC', 'EK', 'EE', 'EF', 'LF', 'ED', 'LG', 'EH', 'LH', 'BI', 'LI', 'EV', 'EY', 'EL', 'LM', 'EN', 'EP', 'LP', 'LZ', 'LJ', 'LE', 'ES', 'LS']
@@ -147,10 +156,10 @@ def RemoveAirport(lista_aeropuertos, codigo_aeropuerto):
 
     return resultado
 #paso 5
-import matplotlib.pyplot as plt
 
 def PlotAirports(lista_aeropuertos):
     if len(lista_aeropuertos) == 0:
+        messagebox.showerror("Error en la lista","Lista vacia")
         return
 
     schengen_count = 0
@@ -164,47 +173,49 @@ def PlotAirports(lista_aeropuertos):
 
     total_aeropuertos = schengen_count + no_schengen_count
 
-    plt.bar([1], [total_aeropuertos], color='red', label='No Schengen')
+    fig = Figure(figsize=(5, 4), dpi=100)
+    ax = fig.add_subplot(111)
+    ax.bar([1], [total_aeropuertos], color='red', label='No Schengen')
+    ax.bar([1], [schengen_count], color='blue', label='Schengen')
 
-    plt.bar([1], [schengen_count], color='blue', label='Schengen')
-
-    plt.ylabel("Airports")
-    plt.title("Schengen airports")
-    plt.legend()
-    plt.show()
+    ax.set_ylabel("Airports")
+    ax.set_title("Schengen airports")
+    ax.legend()
+    return fig
 
 
 def MapAirports(lista_aeropuertos):
     if len(lista_aeropuertos) == 0:
-        print("La lista de aeropuertos está vacía.")
+        messagebox.showerror("Error en la lista","Lista vacia")
         return
+    else:
+        try:
+            f = open("mapa_aeropuertos.kml", "w")
+            f.write('<?xml version="1.0" encoding="UTF-8"?>\n')
+            f.write('<kml xmlns="http://www.opengis.net/kml/2.2">\n')
+            f.write('<Document>\n')
 
-    try:
-        f = open("mapa_aeropuertos.kml", "w")
-        f.write('<?xml version="1.0" encoding="UTF-8"?>\n')
-        f.write('<kml xmlns="http://www.opengis.net/kml/2.2">\n')
-        f.write('<Document>\n')
+            f.write('<Style id="schengenStyle">\n<IconStyle>\n<color>ffff0000</color>\n</IconStyle>\n</Style>\n')
+            f.write('<Style id="noSchengenStyle">\n<IconStyle>\n<color>ff0000ff</color>\n</IconStyle>\n</Style>\n')
 
-        f.write('<Style id="schengenStyle">\n<IconStyle>\n<color>ffff0000</color>\n</IconStyle>\n</Style>\n')
-        f.write('<Style id="noSchengenStyle">\n<IconStyle>\n<color>ff0000ff</color>\n</IconStyle>\n</Style>\n')
+            for aeropuerto in lista_aeropuertos:
+                if aeropuerto.schengen:
+                    estilo = "#schengenStyle"
+                else:
+                    estilo = "#noSchengenStyle"
 
-        for aeropuerto in lista_aeropuertos:
-            if aeropuerto.schengen:
-                estilo = "#schengenStyle"
-            else:
-                estilo = "#noSchengenStyle"
+                f.write('<Placemark>\n')
+                f.write(f'<name>{aeropuerto.codigo}</name>\n')
+                f.write(f'<styleUrl>{estilo}</styleUrl>\n')
+                f.write('<Point>\n')
+                f.write(f'<coordinates>{aeropuerto.longitud},{aeropuerto.latitud}</coordinates>\n')
+                f.write('</Point>\n')
+                f.write('</Placemark>\n')
 
-            f.write('<Placemark>\n')
-            f.write(f'<name>{aeropuerto.codigo}</name>\n')
-            f.write(f'<styleUrl>{estilo}</styleUrl>\n')
-            f.write('<Point>\n')
-            f.write(f'<coordinates>{aeropuerto.longitud},{aeropuerto.latitud}</coordinates>\n')
-            f.write('</Point>\n')
-            f.write('</Placemark>\n')
-
-        f.write('</Document>\n')
-        f.write('</kml>\n')
-        f.close()
-        print("Archivo 'mapa_aeropuertos.kml' generado con éxito.")
-    except:
-        print("Error al generar el mapa KML.")
+            f.write('</Document>\n')
+            f.write('</kml>\n')
+            f.close()
+            os.startfile("mapa_aeropuertos.kml")
+            messagebox.showinfo("Perfecto","Archivo 'mapa_aeropuertos.kml' generado con éxito.")
+        except Exception as e:
+            messagebox.showerror("Error",f"no se ha podido crear, error: {e}")

@@ -8,12 +8,99 @@ from matplotlib.figure import Figure
 import os
 
 class Aircraft:
-    def __init__(self, id, company, origin, time):
+    def __init__(self, id, company, origin, time, destination, departure):
         self.id = id
         self.company = company
         self.origin = origin
         self.time = time
+        self.destination = destination
+        self.departure = departure
 
+def time_to_mins(t_str):
+    if not t_str:
+        return -1
+    partes = t_str.split(':')
+    return int(partes[0]) * 60 + int(partes[1])
+
+def LoadDepartures(filename):
+
+    if not os.path.exists(filename):
+        return [], -1
+
+    departures_list = []
+    try:
+        with open(filename, 'r', encoding='utf-8') as f:
+            lineas = f.readlines()
+
+            for linea in lineas[1:]:
+                linea = linea.strip()
+                if linea:
+                    partes = linea.split()
+                    if len(partes) >= 4:
+                        a_id = partes[0]
+                        dest = partes[1]
+                        dep_time = partes[2]
+                        company = partes[3]
+
+                        ac = Aircraft(aircraft_id=a_id, company=company, origin="",
+                                      arrival_time="", destination=dest, departure_time=dep_time)
+                        departures_list.append(ac)
+        return departures_list, 0
+    except Exception as e:
+        print(f"Error leyendo salidas: {e}")
+        return [], -1
+
+
+def MergeMovements(arrivals, departures):
+
+    if not arrivals or not departures:
+        return -1
+
+    merged_list = []
+    used_departures = set()
+
+    for arr in arrivals:
+        mejor_indice_salida = -1
+        mejor_tiempo_salida = 999999
+        minutos_llegada = time_to_mins(arr.time)
+
+        for i, dep in enumerate(departures):
+            if i in used_departures:
+                continue
+
+            if arr.id == dep.id:
+                minutos_salida = time_to_mins(dep.departure)
+
+                if minutos_llegada < minutos_salida < mejor_tiempo_salida:
+                    mejor_tiempo_salida = minutos_salida
+                    mejor_indice_salida = i
+
+        if mejor_indice_salida != -1:
+            dep_elegida = departures[mejor_indice_salida]
+            avion_fusionado = Aircraft(arr.id, arr.company, arr.origin, arr.time,
+                                       dep_elegida.destination, dep_elegida.departure)
+            merged_list.append(avion_fusionado)
+            used_departures.add(mejor_indice_salida)
+        else:
+            merged_list.append(arr)
+
+    for i, dep in enumerate(departures):
+        if i not in used_departures:
+            merged_list.append(dep)
+
+    return merged_list
+
+def NightAircraft(aircrafts):
+
+    if not aircrafts:
+        return -1
+
+    night_list = []
+    for ac in aircrafts:
+        if ac.departure and not ac.time:
+            night_list.append(ac)
+
+    return night_list
 
 def LoadArrivals(filename):
     arrivals = []
@@ -192,3 +279,4 @@ if __name__ == "__main__":
         MapFlights(vuelos)
         lejanos = LongDistanceArrivals(vuelos)
         print("Vuelos lejanos para inspección especial:", len(lejanos))
+

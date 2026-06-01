@@ -1,11 +1,7 @@
 import os
 import re
-from tkinter import messagebox
-from tkinter import filedialog
-import tkinter as tk
 from matplotlib.figure import Figure
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from aircraft import *
+import airport
 
 
 class Gate:
@@ -132,8 +128,12 @@ def IsAirlineInTerminal(terminal, nombre):
 def SearchTerminal(bcn, nombre):
     for terminal in bcn.terminals:
         resultado = IsAirlineInTerminal(terminal, nombre)
-        if resultado is True:
-            return terminal.name
+        if isinstance(resultado, tuple):
+            if resultado[0]:
+                return terminal.name
+        else:
+            if resultado:
+                return terminal.name
     return ""
 
 
@@ -141,13 +141,14 @@ def AssignGate(bcn, aircraft):
     nombre_t = SearchTerminal(bcn, aircraft.company)
 
     if not nombre_t:
-        return f"Vuelo {aircraft.id}: La aerolínea '{aircraft.company}' no opera en ninguna terminal."
+        return -1
 
     terminal = next((t for t in bcn.terminals if t.name == nombre_t), None)
     if not terminal:
-        return f"Vuelo {aircraft.id}: Error interno, no se encontró la terminal {nombre_t}."
+        return -1
 
-    tipo_requerido = "Schengen" if getattr(aircraft, 'is_schengen', False) else "No Schengen"
+    es_schengen = airport.IsSchengenAirport(aircraft.origin)
+    tipo_requerido = "Schengen" if es_schengen else "non-Schengen"
 
     for area in terminal.boarding_areas:
         if area.type == tipo_requerido:
@@ -155,9 +156,9 @@ def AssignGate(bcn, aircraft):
                 if not gate.occupied:
                     gate.occupied = True
                     gate.aircraft_id = aircraft.id
-                    return f"Vuelo {aircraft.id} asignado a la puerta {gate.name} ({nombre_t} - Zona {area.name})."
+                    return 0
 
-    return f"Vuelo {aircraft.id}: No hay puertas libres en la zona {tipo_requerido} de la {nombre_t}."
+    return -1
 
 
 def AssignNightGates(bcn, aircrafts):
@@ -165,9 +166,7 @@ def AssignNightGates(bcn, aircrafts):
         return -1
 
     for aircraft in aircrafts:
-        origen_vacio = not getattr(aircraft, 'origin', None)
-
-        if origen_vacio:
+        if not aircraft.time and aircraft.departure:
             AssignGate(bcn, aircraft)
 
     return 0
@@ -187,18 +186,19 @@ def FreeGate(bcn, id):
 
 def AssignGatesAtTime(bcn, aircrafts, hora):
     no_asignados = 0
+    hora_prefijo = hora.split(':')[0]
 
     for aircraft in aircrafts:
-        hora_salida = getattr(aircraft, 'departure_time', None)
-        if hora_salida and hora_salida <= hora:
-            FreeGate(bcn, aircraft.id)
+        if aircraft.departure:
+            if aircraft.departure.split(':')[0] <= hora_prefijo:
+                FreeGate(bcn, aircraft.id)
 
     for aircraft in aircrafts:
-        hora_llegada = getattr(aircraft, 'arrival_time', None)
-        if hora_llegada and hora_llegada.startswith(hora.split(':')[0]):
-            resultado = AssignGate(bcn, aircraft)
-            if "No hay puertas libres" in resultado:
-                no_asignados += 1
+        if aircraft.time:
+            if aircraft.time.split(':')[0] == hora_prefijo:
+                resultado = AssignGate(bcn, aircraft)
+                if SearchTerminal(bcn, aircraft.company) != "" and resultado == -1:
+                    no_asignados += 1
 
     return no_asignados
 
@@ -219,3 +219,38 @@ def PlotDayOccupancy(bcn, aircrafts):
                     if gate.occupied:
                         puertas_ocupadas += 1
             ocupacion_por_terminal[terminal.name].append(puertas_ocupadas)
+
+    fig = Figure(figsize=(8, 5), dpi=100)
+    ax = fig.add_subplot(111)
+
+    bottom = [0] * 24
+    colores = ['#4682B4', '#F08080', '#3CB371']
+
+    for i, (term_name, counts) in enumerate(ocupacion_por_terminal.items()):
+        color = colores[i % len(colores)]
+        ax.bar(horas_del_dia, counts, bottom=bottom, label=f"Terminal {term_name}", color=color)
+        bottom = [b + c for b, c in zip(bottom, counts)]
+
+    ax.plot(horas_del_dia, aviones_no_asignados, color='black', marker='o', linestyle='-', linewidth=2,
+            label="No asignados")
+
+    ax.set_xlabel("Hora del día")
+    ax.set_ylabel("Cantidad")
+    ax.set_title("Ocupación de Puertas por Terminal y Aviones No Asignados")
+    ax.tick_params(axis='x', rotation=45, labelsize=8)
+    ax.legend()
+    fig.tight_layout()
+
+    return fig
+
+
+if __name__ == "__main__":
+    from aircraft import LoadArrivals, LoadDepartures, MergeMovements
+
+    bcn_ap = LoadAirportStructure("LEBL.txt")
+    if bcn_ap != -1:
+        arr = LoadArrivals("arrivals.txt")
+        dep, status = LoadDepartures("departures.txt")
+        if status == 0 and arr:
+            vuelos = MergeMovements(arr, dep)
+            fig_ocupacion = PlotDayOccupancy(bcn_ap, vuelos)

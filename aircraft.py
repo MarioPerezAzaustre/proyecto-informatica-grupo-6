@@ -1,14 +1,10 @@
 import math
-import matplotlib.pyplot as plt
-import airport
-import tkinter as tk
-from tkinter import messagebox
-from tkinter import filedialog
-from matplotlib.figure import Figure
 import os
+from matplotlib.figure import Figure
+import airport
 
 class Aircraft:
-    def __init__(self, id, company, origin, time, destination, departure):
+    def __init__(self, id, company, origin="", time="", destination="", departure=""):
         self.id = id
         self.company = company
         self.origin = origin
@@ -16,20 +12,19 @@ class Aircraft:
         self.destination = destination
         self.departure = departure
 
-def time_to_mins(t_str):
+def tiempo_a_minutos(t_str):
     if not t_str:
         return -1
     partes = t_str.split(':')
     return int(partes[0]) * 60 + int(partes[1])
 
-def LoadDepartures(filename):
-
-    if not os.path.exists(filename):
+def LoadDepartures(nombre_archivo):
+    if not os.path.exists(nombre_archivo):
         return [], -1
 
-    departures_list = []
+    lista_salidas = []
     try:
-        with open(filename, 'r', encoding='utf-8') as f:
+        with open(nombre_archivo, 'r', encoding='utf-8') as f:
             lineas = f.readlines()
 
             for linea in lineas[1:]:
@@ -42,92 +37,86 @@ def LoadDepartures(filename):
                         dep_time = partes[2]
                         company = partes[3]
 
-                        ac = Aircraft(aircraft_id=a_id, company=company, origin="",
-                                      arrival_time="", destination=dest, departure_time=dep_time)
-                        departures_list.append(ac)
-        return departures_list, 0
-    except Exception as e:
-        print(f"Error leyendo salidas: {e}")
+                        ac = Aircraft(id=a_id, company=company, destination=dest, departure=dep_time)
+                        lista_salidas.append(ac)
+        return lista_salidas, 0
+    except Exception:
         return [], -1
 
-
-def MergeMovements(arrivals, departures):
-
-    if not arrivals or not departures:
+def MergeMovements(llegadas, salidas):
+    if not llegadas or not salidas:
         return -1
 
-    merged_list = []
-    used_departures = set()
+    lista_fusionada = []
+    salidas_usadas = set()
 
-    for arr in arrivals:
+    for arr in llegadas:
         mejor_indice_salida = -1
         mejor_tiempo_salida = 999999
-        minutos_llegada = time_to_mins(arr.time)
+        minutos_llegada = tiempo_a_minutos(arr.time)
 
-        for i, dep in enumerate(departures):
-            if i in used_departures:
+        for i, dep in enumerate(salidas):
+            if i in salidas_usadas:
                 continue
 
             if arr.id == dep.id:
-                minutos_salida = time_to_mins(dep.departure)
+                minutos_salida = tiempo_a_minutos(dep.departure)
 
                 if minutos_llegada < minutos_salida < mejor_tiempo_salida:
                     mejor_tiempo_salida = minutos_salida
                     mejor_indice_salida = i
 
         if mejor_indice_salida != -1:
-            dep_elegida = departures[mejor_indice_salida]
-            avion_fusionado = Aircraft(arr.id, arr.company, arr.origin, arr.time,
-                                       dep_elegida.destination, dep_elegida.departure)
-            merged_list.append(avion_fusionado)
-            used_departures.add(mejor_indice_salida)
+            dep_elegida = salidas[mejor_indice_salida]
+            avion_fusionado = Aircraft(id=arr.id, company=arr.company, origin=arr.origin, time=arr.time,
+                                       destination=dep_elegida.destination, departure=dep_elegida.departure)
+            lista_fusionada.append(avion_fusionado)
+            salidas_usadas.add(mejor_indice_salida)
         else:
-            merged_list.append(arr)
+            lista_fusionada.append(arr)
 
-    for i, dep in enumerate(departures):
-        if i not in used_departures:
-            merged_list.append(dep)
+    for i, dep in enumerate(salidas):
+        if i not in salidas_usadas:
+            lista_fusionada.append(dep)
 
-    return merged_list
+    return lista_fusionada
 
-def NightAircraft(aircrafts):
-
-    if not aircrafts:
+def NightAircraft(vuelos):
+    if not vuelos:
         return -1
 
-    night_list = []
-    for ac in aircrafts:
+    lista_nocturnos = []
+    for ac in vuelos:
         if ac.departure and not ac.time:
-            night_list.append(ac)
+            lista_nocturnos.append(ac)
 
-    return night_list
+    return lista_nocturnos
 
-def LoadArrivals(filename):
-    arrivals = []
+def LoadArrivals(nombre_archivo):
+    llegadas = []
     try:
-        archivo = open(filename, 'r')
+        archivo = open(nombre_archivo, 'r')
         filas = archivo.readlines()
         archivo.close()
 
         if len(filas) > 1:
             for index in range(1, len(filas)):
                 linea = filas[index]
-                parts = linea.split()
-                if len(parts) >= 4 and ':' in parts[2]:
-                    new_avion = Aircraft(parts[0], parts[3], parts[1], parts[2])
-                    arrivals.append(new_avion)
-        return arrivals
+                partes = linea.split()
+                if len(partes) >= 4 and ':' in partes[2]:
+                    nuevo_avion = Aircraft(id=partes[0], company=partes[3], origin=partes[1], time=partes[2])
+                    llegadas.append(nuevo_avion)
+        return llegadas
     except:
         return []
 
-
-def SaveFlights(aircrafts, filename):
-    if len(aircrafts) == 0:
+def SaveFlights(vuelos, nombre_archivo):
+    if len(vuelos) == 0:
         return -1
     try:
-        f = open(filename, 'w')
+        f = open(nombre_archivo, 'w')
         f.write("AIRCRAFT ORIGIN ARRIVAL AIRLINE\n")
-        for ac in aircrafts:
+        for ac in vuelos:
             id_v = ac.id if ac.id != "" else "''"
             orig = ac.origin if ac.origin != "" else "''"
             time = ac.time if ac.time != "" else "0"
@@ -139,13 +128,11 @@ def SaveFlights(aircrafts, filename):
     except:
         return -1
 
-
-def PlotArrivals(aircrafts):
-    if len(aircrafts) == 0:
-        messagebox.showwarning("Error en la lista","Estas seguro que es esta lista?")
-        return
+def PlotArrivals(vuelos):
+    if len(vuelos) == 0:
+        return None
     horas = [0] * 24
-    for ac in aircrafts:
+    for ac in vuelos:
         try:
             h = int(ac.time.split(':')[0])
             if 0 <= h < 24:
@@ -161,13 +148,12 @@ def PlotArrivals(aircrafts):
     ax.set_title("Frecuencia de aterrizajes en LEBL")
     return fig
 
-
-def PlotAirlines(aircrafts):
-    if not aircrafts:
+def PlotAirlines(vuelos):
+    if not vuelos:
         return None
 
     conteo = {}
-    for ac in aircrafts:
+    for ac in vuelos:
         cia = ac.company
         conteo[cia] = conteo.get(cia, 0) + 1
     fig = Figure(figsize=(5, 4), dpi=100)
@@ -178,24 +164,22 @@ def PlotAirlines(aircrafts):
     fig.tight_layout()
     return fig
 
-def PlotFlightsType(aircrafts):
-    if len(aircrafts) == 0:
-        messagebox.showwarning("Error en la lista","Estas seguro que es esta lista?")
-        return
+def PlotFlightsType(vuelos):
+    if len(vuelos) == 0:
+        return None
     schengen_count = 0
     no_schengen_count = 0
-    for flight in aircrafts:
+    for flight in vuelos:
         if airport.IsSchengenAirport(flight.origin):
             schengen_count += 1
         else:
             no_schengen_count += 1
     fig = Figure(figsize=(5, 4), dpi=100)
     ax = fig.add_subplot(111)
-    ax.bar(["Arrivals"], [schengen_count], color='blue', label='Schengen', width=0.5)
-    ax.bar(["Arrivals"], [no_schengen_count], bottom=[schengen_count], color='red', label='No Schengen', width=0.5)
+    ax.bar(["Arrivals"], [schengen_count], color='#4682B4', label='Schengen', width=0.5)
+    ax.bar(["Arrivals"], [no_schengen_count], bottom=[schengen_count], color='#F08080', label='No Schengen', width=0.5)
     ax.set_title("Distribución Schengen / No Schengen")
     return fig
-
 
 def Haversine(lat1, lon1, lat2, lon2):
     r = 6371.0
@@ -207,9 +191,8 @@ def Haversine(lat1, lon1, lat2, lon2):
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
     return r * c
 
-
-def LongDistanceArrivals(aircrafts):
-    if len(aircrafts) == 0:
+def LongDistanceArrivals(vuelos):
+    if len(vuelos) == 0:
         return []
 
     lista_aeropuertos = airport.LoadAirports("Airports.txt")
@@ -218,7 +201,7 @@ def LongDistanceArrivals(aircrafts):
     lat_lebl = 41.297445
     lon_lebl = 2.0832941
 
-    for flight in aircrafts:
+    for flight in vuelos:
         aero_origen = None
         for a in lista_aeropuertos:
             if a.codigo == flight.origin:
@@ -230,11 +213,9 @@ def LongDistanceArrivals(aircrafts):
                 vuelos_lejanos.append(flight)
     return vuelos_lejanos
 
-
-def MapFlights(aircrafts):
-    if len(aircrafts) == 0:
-        messagebox.showerror("Error: La lista de vuelos está vacía. No se generará el mapa.")
-        return
+def MapFlights(vuelos):
+    if len(vuelos) == 0:
+        return -1
 
     lista_aeropuertos = airport.LoadAirports("Airports.txt")
 
@@ -242,12 +223,10 @@ def MapFlights(aircrafts):
         f = open("Rutas_Barcelona.kml", "w", encoding="utf-8")
         f.write('<?xml version="1.0" encoding="UTF-8"?>\n')
         f.write('<kml xmlns="http://www.opengis.net/kml/2.2">\n<Document>\n')
-        f.write(
-            '<Style id="rutaSchengen"><LineStyle><color>ff0000ff</color><width>2</width></LineStyle></Style>\n')  # Rojo
-        f.write(
-            '<Style id="rutaNoSchengen"><LineStyle><color>ffff0000</color><width>2</width></LineStyle></Style>\n')  # Azul
+        f.write('<Style id="rutaSchengen"><LineStyle><color>ff0000ff</color><width>2</width></LineStyle></Style>\n')
+        f.write('<Style id="rutaNoSchengen"><LineStyle><color>ffff0000</color><width>2</width></LineStyle></Style>\n')
 
-        for flight in aircrafts:
+        for flight in vuelos:
             aero = None
             for a in lista_aeropuertos:
                 if a.codigo == flight.origin:
@@ -263,14 +242,12 @@ def MapFlights(aircrafts):
                 f.write('</coordinates></LineString>\n</Placemark>\n')
         f.write('</Document>\n</kml>\n')
         f.close()
-        os.startfile('Rutas_Barcelona.kml')
+        return 0
 
-    except Exception as e:
-        messagebox.showerror("Error", f"no se ha podido crear, error: {e}")
-
+    except Exception:
+        return -1
 
 if __name__ == "__main__":
-    plt.style.use('default')
     vuelos = LoadArrivals("arrivals.txt")
     if len(vuelos) > 0:
         PlotArrivals(vuelos)
@@ -279,4 +256,3 @@ if __name__ == "__main__":
         MapFlights(vuelos)
         lejanos = LongDistanceArrivals(vuelos)
         print("Vuelos lejanos para inspección especial:", len(lejanos))
-

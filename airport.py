@@ -1,11 +1,6 @@
-#paso 1
-import tkinter as tk
-from logging import exception
-from tkinter import messagebox
-from tkinter import filedialog
-from matplotlib.figure import Figure
-import matplotlib.pyplot as plt
 import os
+from matplotlib.figure import Figure
+
 
 class Airport:
     def __init__(self, codigo, latitud, longitud):
@@ -17,15 +12,16 @@ class Airport:
 
 def IsSchengenAirport(codigo):
     if not codigo:
-        messagebox.showerror("Error","No hay lista")
         return False
 
-    prefijos_schengen = ['LO', 'EB', 'LK', 'LC', 'EK', 'EE', 'EF', 'LF', 'ED', 'LG', 'EH', 'LH', 'BI', 'LI', 'EV', 'EY', 'EL', 'LM', 'EN', 'EP', 'LP', 'LZ', 'LJ', 'LE', 'ES', 'LS']
+    prefijos_schengen = ['LO', 'EB', 'LK', 'LC', 'EK', 'EE', 'EF', 'LF', 'ED', 'LG', 'EH', 'LH', 'BI', 'LI', 'EV', 'EY',
+                         'EL', 'LM', 'EN', 'EP', 'LP', 'LZ', 'LJ', 'LE', 'ES', 'LS']
 
     if codigo[0:2] in prefijos_schengen:
         return True
     else:
         return False
+
 
 def SetSchengen(aeropuerto):
     aeropuerto.schengen = IsSchengenAirport(aeropuerto.codigo)
@@ -37,7 +33,7 @@ def PrintAirport(aeropuerto):
     print(f"Schengen: {aeropuerto.schengen}")
     print("-" * 20)
 
-#paso 3
+
 def LoadAirports(nombre_archivo):
     lista_aeropuertos = []
     try:
@@ -79,6 +75,7 @@ def LoadAirports(nombre_archivo):
     except:
         return []
 
+
 def FormatCoord(valor, es_latitud):
     if valor < 0:
         valor_positivo = -valor
@@ -110,6 +107,7 @@ def FormatCoord(valor, es_latitud):
     else:
         return f"{direccion}{grados:03d}{minutos:02d}{segundos:02d}"
 
+
 def SaveSchengenAirports(lista_aeropuertos, nombre_archivo):
     if len(lista_aeropuertos) == 0:
         return -1
@@ -128,6 +126,7 @@ def SaveSchengenAirports(lista_aeropuertos, nombre_archivo):
         return 0
     except:
         return -1
+
 
 def AddAirport(lista_aeropuertos, nuevo_aeropuerto):
     encontrado = False
@@ -155,28 +154,26 @@ def RemoveAirport(lista_aeropuertos, codigo_aeropuerto):
             lista_aeropuertos.append(a)
 
     return resultado
-#paso 5
+
 
 def PlotAirports(lista_aeropuertos):
     if len(lista_aeropuertos) == 0:
-        messagebox.showerror("Error en la lista","Lista vacia")
-        return
+        return None
 
     schengen_count = 0
     no_schengen_count = 0
 
     for aeropuerto in lista_aeropuertos:
         if aeropuerto.schengen:
-            schengen_count = schengen_count + 1
+            schengen_count += 1
         else:
-            no_schengen_count = no_schengen_count + 1
-
-    total_aeropuertos = schengen_count + no_schengen_count
+            no_schengen_count += 1
 
     fig = Figure(figsize=(5, 4), dpi=100)
     ax = fig.add_subplot(111)
-    ax.bar([1], [total_aeropuertos], color='red', label='No Schengen')
-    ax.bar([1], [schengen_count], color='blue', label='Schengen')
+
+    ax.bar(['Aeropuertos'], [schengen_count], color='#4682B4', label='Schengen')
+    ax.bar(['Aeropuertos'], [no_schengen_count], bottom=[schengen_count], color='#F08080', label='No Schengen')
 
     ax.set_ylabel("Airports")
     ax.set_title("Schengen airports")
@@ -186,8 +183,7 @@ def PlotAirports(lista_aeropuertos):
 
 def MapAirports(lista_aeropuertos):
     if len(lista_aeropuertos) == 0:
-        messagebox.showerror("Error en la lista","Lista vacia")
-        return
+        return -1
     else:
         try:
             f = open("mapa_aeropuertos.kml", "w")
@@ -215,7 +211,6 @@ def MapAirports(lista_aeropuertos):
             f.write('</Document>\n')
             f.write('</kml>\n')
             f.close()
-            os.startfile("mapa_aeropuertos.kml")
-            messagebox.showinfo("Perfecto","Archivo 'mapa_aeropuertos.kml' generado con éxito.")
-        except Exception as e:
-            messagebox.showerror("Error",f"no se ha podido crear, error: {e}")
+            return 0
+        except Exception:
+            return -1

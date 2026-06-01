@@ -4,6 +4,7 @@ from matplotlib.figure import Figure
 import airport
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+#from adjustText import adjust_text
 
 class Gate:
     def __init__(self, nombre):
@@ -245,111 +246,104 @@ def PlotDayOccupancy(bcn, aircrafts):
     return fig
 
 
-def PlotTerminalPiers(bcn):
-
+def PlotTerminalPiers(bcn, nombre_terminal):
     if not bcn or not bcn.terminals:
         print("Error: No hay estructura de aeropuerto cargada.")
-        return
+        return None
+    terminal = next((t for t in bcn.terminals if t.name == nombre_terminal), None)
+    if not terminal:
+        print(f"Error: La terminal {nombre_terminal} no existe.")
+        return None
 
-    for terminal in bcn.terminals:
-        fig, ax = plt.subplots(figsize=(14, 8))
-        ax.set_aspect('equal')
+    fig = Figure(figsize=(14, 8), dpi=100)
+    ax = fig.add_subplot(111)
+    ax.set_aspect('equal')
 
-        Y_MAIN_CONCOURSE = 10
-        PIER_HEIGHT = 9
-        GATE_STICK_LEN = 0.8
-        STATUS_BOX_W = 0.6
-        STATUS_BOX_H = 0.35
+    Y_MAIN_CONCOURSE = 10
+    PIER_HEIGHT = 9
+    GATE_STICK_LEN = 0.8
+    STATUS_BOX_W = 0.6
+    STATUS_BOX_H = 0.35
 
-        color_structure = '#2c6180'
-        color_free = '#00a859'
-        color_occupied = '#ed1c24'
+    color_structure = '#2c6180'
+    color_free = '#00a859'
+    color_occupied = '#ed1c24'
 
-        conc_width = 12
-        conc_height = 0.6
-        conc_x = 0
-        conc_y = Y_MAIN_CONCOURSE - (conc_height / 2)
-        main_conc = patches.Rectangle((conc_x, conc_y), conc_width, conc_height,
+    conc_width = 12
+    conc_height = 0.6
+    conc_x = 0
+    conc_y = Y_MAIN_CONCOURSE - (conc_height / 2)
+    main_conc = patches.Rectangle((conc_x, conc_y), conc_width, conc_height,
+                                  linewidth=1, edgecolor='black', facecolor=color_structure, zorder=2)
+    ax.add_patch(main_conc)
+    ax.text(-0.8, Y_MAIN_CONCOURSE, terminal.name, fontsize=18, fontweight='bold', va='center')
+
+    num_bas = len(terminal.boarding_areas)
+    if num_bas == 0:
+        return fig
+    space_between_piers = conc_width / (num_bas + 1)
+    pier_width = 0.4
+
+    for i, area in enumerate(terminal.boarding_areas):
+        pier_x_center = space_between_piers * (i + 1)
+        pier_x_top_left = pier_x_center - (pier_width / 2)
+        pier_y_top = Y_MAIN_CONCOURSE - (conc_height / 2)
+        pier_y_bottom = pier_y_top - PIER_HEIGHT
+        pier_rect = patches.Rectangle((pier_x_top_left, pier_y_bottom), pier_width, PIER_HEIGHT,
                                       linewidth=1, edgecolor='black', facecolor=color_structure, zorder=2)
-        ax.add_patch(main_conc)
-        ax.text(-0.8, Y_MAIN_CONCOURSE, terminal.name, fontsize=18, fontweight='bold', va='center')
+        ax.add_patch(pier_rect)
 
-        num_bas = len(terminal.boarding_areas)
-        if num_bas == 0:
+        label_text = f"{terminal.name}{area.name}"
+        ax.text(pier_x_center, pier_y_bottom - 0.6, label_text, fontsize=12, ha='center', va='top',
+                fontweight='bold')
+        num_gates = len(area.gates)
+        if num_gates == 0:
             continue
-        space_between_piers = conc_width / (num_bas + 1)
-        pier_width = 0.4
+        levels = (num_gates + 1) // 2
+        space_between_gates = PIER_HEIGHT / (levels + 1)
 
-        for i, area in enumerate(terminal.boarding_areas):
-            pier_x_center = space_between_piers * (i + 1)
-            pier_x_top_left = pier_x_center - (pier_width / 2)
+        for g_idx, gate in enumerate(area.gates):
+            on_right_side = (g_idx % 2 == 0)
+            gate_level = g_idx // 2
+            gate_y = pier_y_top - space_between_gates * (gate_level + 1)
+            if on_right_side:
+                stick_start_x = pier_x_top_left + pier_width
+                stick_end_x = stick_start_x + GATE_STICK_LEN
+            else:
+                stick_start_x = pier_x_top_left
+                stick_end_x = stick_start_x - GATE_STICK_LEN
+            ax.plot([stick_start_x, stick_end_x], [gate_y, gate_y], color='black', linewidth=1.5, zorder=1)
+            box_color = color_occupied if gate.occupied else color_free
+            if on_right_side:
+                box_x = stick_end_x
+            else:
+                box_x = stick_end_x - STATUS_BOX_W
 
-            pier_y_top = Y_MAIN_CONCOURSE - (conc_height / 2)
-            pier_y_bottom = pier_y_top - PIER_HEIGHT
+            box_y = gate_y - (STATUS_BOX_H / 2)
 
-            pier_rect = patches.Rectangle((pier_x_top_left, pier_y_bottom), pier_width, PIER_HEIGHT,
-                                          linewidth=1, edgecolor='black', facecolor=color_structure, zorder=2)
-            ax.add_patch(pier_rect)
+            status_box = patches.Rectangle((box_x, box_y), STATUS_BOX_W, STATUS_BOX_H,
+                                           linewidth=1, edgecolor='black', facecolor=box_color, zorder=3)
+            ax.add_patch(status_box)
+            ax.text((stick_start_x + stick_end_x) / 2, gate_y + 0.15, gate.name,
+                    fontsize=7, ha='center', va='bottom', weight='bold' if gate.occupied else 'normal')
 
-            label_text = f"{terminal.name}{area.name}"
-            ax.text(pier_x_center, pier_y_bottom - 0.6, label_text, fontsize=12, ha='center', va='top',
-                    fontweight='bold')
-
-            num_gates = len(area.gates)
-            if num_gates == 0:
-                continue
-
-            levels = (num_gates + 1) // 2
-            space_between_gates = PIER_HEIGHT / (levels + 1)
-
-            for g_idx, gate in enumerate(area.gates):
-
-                on_right_side = (g_idx % 2 == 0)
-                gate_level = g_idx // 2
-                gate_y = pier_y_top - space_between_gates * (gate_level + 1)
-
-                if on_right_side:
-                    stick_start_x = pier_x_top_left + pier_width
-                    stick_end_x = stick_start_x + GATE_STICK_LEN
-                else:
-                    stick_start_x = pier_x_top_left
-                    stick_end_x = stick_start_x - GATE_STICK_LEN
-
-                ax.plot([stick_start_x, stick_end_x], [gate_y, gate_y], color='black', linewidth=1.5, zorder=1)
-
-                box_color = color_occupied if gate.occupied else color_free
+            if gate.occupied:
+                ac_id = ""
+                if hasattr(gate, 'aircraft_id') and gate.aircraft_id:
+                    ac_id = gate.aircraft_id
+                elif hasattr(gate, 'aircraft') and gate.aircraft:
+                    ac_id = gate.aircraft if isinstance(gate.aircraft, str) else getattr(gate.aircraft, 'id', '')
 
                 if on_right_side:
-                    box_x = stick_end_x
+                    ax.text(box_x + STATUS_BOX_W + 0.1, gate_y, ac_id, ha='left', va='center', fontsize=9,fontweight='bold')
                 else:
-                    box_x = stick_end_x - STATUS_BOX_W
+                    ax.text(box_x - 0.1, gate_y, ac_id, ha='right', va='center', fontsize=9, fontweight='bold')
 
-                box_y = gate_y - (STATUS_BOX_H / 2)
+    ax.axis('off')
+    ax.set_title(f"Live Terminal Map - {bcn.code} ({terminal.name})", fontsize=14, fontweight='bold', pad=20)
+    fig.tight_layout()
 
-                status_box = patches.Rectangle((box_x, box_y), STATUS_BOX_W, STATUS_BOX_H,
-                                               linewidth=1, edgecolor='black', facecolor=box_color, zorder=3)
-                ax.add_patch(status_box)
-
-                ax.text((stick_start_x + stick_end_x) / 2, gate_y + 0.15, gate.name,
-                        fontsize=7, ha='center', va='bottom', weight='bold' if gate.occupied else 'normal')
-
-                if gate.occupied:
-                    ac_id = ""
-                    if hasattr(gate, 'aircraft_id') and gate.aircraft_id:
-                        ac_id = gate.aircraft_id
-                    elif hasattr(gate, 'aircraft') and gate.aircraft:
-                        ac_id = gate.aircraft if isinstance(gate.aircraft, str) else getattr(gate.aircraft, 'id', '')
-
-                    if on_right_side:
-                        ax.text(box_x + STATUS_BOX_W + 0.1, gate_y, ac_id, ha='left', va='center', fontsize=9,
-                                fontweight='bold')
-                    else:
-                        ax.text(box_x - 0.1, gate_y, ac_id, ha='right', va='center', fontsize=9, fontweight='bold')
-
-        ax.axis('off')
-        plt.title(f"Live Terminal Map - {bcn.code} ({terminal.name})", fontsize=14, fontweight='bold', pad=20)
-        plt.tight_layout()
-        plt.show()
+    return fig
 
 if __name__ == "__main__":
     from aircraft import LoadArrivals, LoadDepartures, MergeMovements

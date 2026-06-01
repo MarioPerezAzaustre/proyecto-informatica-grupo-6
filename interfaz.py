@@ -195,8 +195,7 @@ def cargar_archivo():
 
     mi_ap = LoadAirportStructure("LEBL.txt")
 
-    messagebox.showinfo("Carga",
-                        f"Se han cargado {len(mis_aeropuertos)} aeropuertos y la estructura táctica de LEBL con éxito.")
+    #messagebox.showinfo("Carga",f"Se han cargado {len(mis_aeropuertos)} aeropuertos y la estructura táctica de LEBL con éxito.")
 
 def ver_mapa_diques_dinamico():
     if mi_ap is None:
@@ -803,6 +802,75 @@ def reproducir_cancion():
     except Exception as e:
         pass
 
+def mostrar_tabla_salidas():
+    if not vuelos:
+        registrar_evento("ADVERTENCIA: Intento de abrir tabla de salidas sin vuelos cargados.")
+        messagebox.showwarning("Aviso", "No hay vuelos cargados. Carga el archivo primero.")
+        return
+    for widget in frame_grafico.winfo_children():
+        widget.destroy()
+    titulo = tk.Label(frame_grafico, text="✈️ TABLÓN DE VUELOS - SALIDAS / DEPARTURES", bg=color_paneles, fg=color_texto,
+                      font=("Helvetica", 14, "bold"))
+    titulo.pack(pady=10)
+    frame_buscador = tk.Frame(frame_grafico, bg=color_paneles)
+    frame_buscador.pack(fill=tk.X, padx=15, pady=5)
+    tk.Label(frame_buscador, text="🔍 Buscar Vuelo / Destino:", bg=color_paneles, fg=color_texto,
+             font=("Helvetica", 10, "bold")).pack(side=tk.LEFT, padx=5)
+    entrada_busqueda = tk.Entry(frame_buscador, width=40, relief=tk.SOLID, bd=1, font=("Helvetica", 10),
+                                bg=color_paneles, fg=color_texto, insertbackground=color_texto)
+    entrada_busqueda.pack(side=tk.LEFT, padx=5)
+    style = ttk.Style()
+    style.theme_use("clam")
+    if modo_oscuro_activo:
+        style.configure("Treeview", background=color_paneles, foreground=color_texto, fieldbackground=color_paneles,
+                        rowheight=30, font=("Helvetica", 10))
+        style.configure("Treeview.Heading", background="#1ABC9C", foreground="black", font=("Helvetica", 11, "bold"))
+    else:
+        style.configure("Treeview", background="white", foreground="black", fieldbackground="white", rowheight=30,
+                        font=("Helvetica", 10))
+        style.configure("Treeview.Heading", background="#D5D8DC", foreground="black", font=("Helvetica", 11, "bold"))
+
+    style.map("Treeview", background=[('selected', "#90A4AE")])
+    scroll_y = tk.Scrollbar(frame_grafico, orient=tk.VERTICAL)
+    scroll_y.pack(side=tk.RIGHT, fill=tk.Y)
+    columnas = ("id", "compania", "destino", "hora")
+    tabla = ttk.Treeview(frame_grafico, columns=columnas, show="headings", style="Treeview",
+                         yscrollcommand=scroll_y.set)
+    scroll_y.config(command=tabla.yview)
+    tabla.heading("id", text="FLIGHT")
+    tabla.heading("compania", text="AIRLINE")
+    tabla.heading("destino", text="TO")
+    tabla.heading("hora", text="DEPARTURE TIME")
+    tabla.column("id", width=120, anchor="center")
+    tabla.column("compania", width=150, anchor="center")
+    tabla.column("destino", width=150, anchor="center")
+    tabla.column("hora", width=120, anchor="center")
+    vuelos_ordenados = sorted(vuelos, key=lambda x: getattr(x, 'time', '00:00') if getattr(x, 'time', '') else '99:99')
+
+    def poblar_tabla(filtro=""):
+        tabla.delete(*tabla.get_children())
+        filtro = filtro.lower()
+        contador = 0
+        for v in vuelos_ordenados:
+            destino_mostrar = getattr(v, 'destination', 'LEBL (Llegada)') if hasattr(v, 'destination') else "Desconocido"
+            hora_mostrar = v.time if v.time else "--:--"
+            if filtro in v.id.lower() or filtro in v.company.lower() or filtro in destino_mostrar.lower():
+                tag = 'par' if contador % 2 == 0 else 'impar'
+                tabla.insert("", tk.END, values=(v.id, v.company, destino_mostrar, hora_mostrar), tags=(tag,))
+                contador += 1
+
+    def on_buscar(event):
+        poblar_tabla(entrada_busqueda.get())
+    entrada_busqueda.bind("<KeyRelease>", on_buscar)
+    if modo_oscuro_activo:
+        tabla.tag_configure('par', background="#2C3E50")
+        tabla.tag_configure('impar', background="#34495E")
+    else:
+        tabla.tag_configure('par', background="#F9F9F9")
+        tabla.tag_configure('impar', background="#FFFFFF")
+    tabla.pack(expand=True, fill="both", padx=15, pady=15)
+    poblar_tabla()
+    registrar_evento("INFO: Tablón de salidas visualizado con buscador activo.")
 
 def siguiente_cancion():
     global indice_actual
@@ -823,7 +891,7 @@ def parar_cancion():
 
 root = tk.Tk()
 root.title("Panel de Control - Gestión Aeroportuaria Avanzada")
-root.geometry("1300x750")
+root.state('zoomed')
 root.configure(bg=color_fondo)
 
 root.columnconfigure(0, weight=1)
@@ -884,8 +952,11 @@ tk.Button(frame_3, text="Airlines", command=lambda: renderizar_en_interfaz(PlotA
     row=1, column=0, padx=5, pady=5, sticky="nsew")
 tk.Button(frame_3, text="Schengen V.", command=lambda: renderizar_en_interfaz(PlotFlightsType, vuelos),
           **estilo_base).grid(row=1, column=1, padx=5, pady=5, sticky="nsew")
-tk.Button(frame_3, text="Tabla Vuelos Completa", command=mostrar_tabla_arribos, **estilo_base).grid(row=2, column=0,
-                                                                                                    columnspan=2,
+tk.Button(frame_3, text="Tabla Arrivals", command=mostrar_tabla_arribos, **estilo_base).grid(row=2, column=0,
+                                                                                                    columnspan=1,
+                                                                                                    padx=5, pady=5,
+                                                                                                    sticky="nsew")
+tk.Button(frame_3, text="Tabla Departures", command=mostrar_tabla_salidas, **estilo_base).grid(row=2, column=1,
                                                                                                     padx=5, pady=5,
                                                                                                     sticky="nsew")
 
@@ -970,8 +1041,7 @@ lbl_contador = tk.Label(frame_musica, text=f"0/{len(lista_musica)}", bg=color_pa
                         font=("Helvetica", 9, "bold"), width=6)
 lbl_contador.grid(row=0, column=4, padx=10, pady=5)
 
-tk.Button(frame_lebl, text="🗺️ Ver Mapa Esquema Terminal",
-          command=lambda: renderizar_en_interfaz(PlotTerminalPiers, bcn_airport),
-          bg="#2C3E50", fg="white", font=("Helvetica", 9, "bold"), relief=tk.FLAT, cursor="hand2").grid(row=3, column=0, columnspan=3, padx=2, pady=4, sticky="nsew")
+tk.Button(frame_lebl, text="🗺️ Esquema T1",command=lambda: renderizar_en_interfaz(lambda ap: PlotTerminalPiers(ap, "T1"), bcn_airport),**estilo_base).grid(row=3, column=0, columnspan=1, padx=2, pady=4, sticky="nsew")
 
+tk.Button(frame_lebl, text="🗺️ Esquema T2",command=lambda: renderizar_en_interfaz(lambda ap: PlotTerminalPiers(ap, "T2"), bcn_airport),**estilo_base).grid(row=3, column=1, columnspan=2, padx=2, pady=4, sticky="nsew")
 root.mainloop()

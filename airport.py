@@ -13,10 +13,8 @@ class Airport:
 def IsSchengenAirport(codigo):
     if not codigo:
         return False
-
     prefijos_schengen = ['LO', 'EB', 'LK', 'LC', 'EK', 'EE', 'EF', 'LF', 'ED', 'LG', 'EH', 'LH', 'BI', 'LI', 'EV', 'EY',
                          'EL', 'LM', 'EN', 'EP', 'LP', 'LZ', 'LJ', 'LE', 'ES', 'LS']
-
     if codigo[0:2] in prefijos_schengen:
         return True
     else:
@@ -40,37 +38,29 @@ def LoadAirports(nombre_archivo):
         f = open(nombre_archivo, "r")
         lineas = f.readlines()
         f.close()
-
         for i in range(1, len(lineas)):
             linea = lineas[i]
             partes = linea.split()
-
             if len(partes) == 3:
                 codigo = partes[0]
                 lat_texto = partes[1]
                 lon_texto = partes[2]
-
                 lat_dir = lat_texto[0]
                 lat_grados = float(lat_texto[1:3])
                 lat_minutos = float(lat_texto[3:5])
                 lat_segundos = float(lat_texto[5:7])
-
                 latitud = lat_grados + (lat_minutos / 60) + (lat_segundos / 3600)
                 if lat_dir == 'S':
                     latitud = -latitud
-
                 lon_dir = lon_texto[0]
                 lon_grados = float(lon_texto[1:4])
                 lon_minutos = float(lon_texto[4:6])
                 lon_segundos = float(lon_texto[6:8])
-
                 longitud = lon_grados + (lon_minutos / 60) + (lon_segundos / 3600)
                 if lon_dir == 'W':
                     longitud = -longitud
-
                 nuevo_aeropuerto = Airport(codigo, latitud, longitud)
                 lista_aeropuertos.append(nuevo_aeropuerto)
-
         return lista_aeropuertos
     except:
         return []
@@ -89,19 +79,16 @@ def FormatCoord(valor, es_latitud):
             direccion = 'N'
         else:
             direccion = 'E'
-
     grados = int(valor_positivo)
     resto_minutos = (valor_positivo - grados) * 60
     minutos = int(resto_minutos)
     segundos = int((resto_minutos - minutos) * 60)
-
     if segundos == 60:
         minutos = minutos + 1
         segundos = 0
     if minutos == 60:
         grados = grados + 1
         minutos = 0
-
     if es_latitud:
         return f"{direccion}{grados:02d}{minutos:02d}{segundos:02d}"
     else:
@@ -111,17 +98,14 @@ def FormatCoord(valor, es_latitud):
 def SaveSchengenAirports(lista_aeropuertos, nombre_archivo):
     if len(lista_aeropuertos) == 0:
         return -1
-
     try:
         f = open(nombre_archivo, "w")
         f.write("CODE LAT LON\n")
-
         for aeropuerto in lista_aeropuertos:
             if aeropuerto.schengen == True:
                 lat_texto = FormatCoord(aeropuerto.latitud, True)
                 lon_texto = FormatCoord(aeropuerto.longitud, False)
                 f.write(aeropuerto.codigo + " " + lat_texto + " " + lon_texto + "\n")
-
         f.close()
         return 0
     except:
@@ -133,7 +117,6 @@ def AddAirport(lista_aeropuertos, nuevo_aeropuerto):
     for a in lista_aeropuertos:
         if a.codigo == nuevo_aeropuerto.codigo:
             encontrado = True
-
     if not encontrado:
         lista_aeropuertos.append(nuevo_aeropuerto)
 
@@ -141,40 +124,32 @@ def AddAirport(lista_aeropuertos, nuevo_aeropuerto):
 def RemoveAirport(lista_aeropuertos, codigo_aeropuerto):
     lista_temporal = []
     resultado = -1
-
     for a in lista_aeropuertos:
         if a.codigo == codigo_aeropuerto:
             resultado = 0
         else:
             lista_temporal.append(a)
-
     if resultado == 0:
         lista_aeropuertos.clear()
         for a in lista_temporal:
             lista_aeropuertos.append(a)
-
     return resultado
 
 
 def PlotAirports(lista_aeropuertos):
     if len(lista_aeropuertos) == 0:
         return None
-
     schengen_count = 0
     no_schengen_count = 0
-
     for aeropuerto in lista_aeropuertos:
         if aeropuerto.schengen:
             schengen_count += 1
         else:
             no_schengen_count += 1
-
     fig = Figure(figsize=(5, 4), dpi=100)
     ax = fig.add_subplot(111)
-
     ax.bar(['Aeropuertos'], [schengen_count], color='#4682B4', label='Schengen')
     ax.bar(['Aeropuertos'], [no_schengen_count], bottom=[schengen_count], color='#F08080', label='No Schengen')
-
     ax.set_ylabel("Airports")
     ax.set_title("Schengen airports")
     ax.legend()
@@ -190,16 +165,13 @@ def MapAirports(lista_aeropuertos):
             f.write('<?xml version="1.0" encoding="UTF-8"?>\n')
             f.write('<kml xmlns="http://www.opengis.net/kml/2.2">\n')
             f.write('<Document>\n')
-
             f.write('<Style id="schengenStyle">\n<IconStyle>\n<color>ffff0000</color>\n</IconStyle>\n</Style>\n')
             f.write('<Style id="noSchengenStyle">\n<IconStyle>\n<color>ff0000ff</color>\n</IconStyle>\n</Style>\n')
-
             for aeropuerto in lista_aeropuertos:
                 if aeropuerto.schengen:
                     estilo = "#schengenStyle"
                 else:
                     estilo = "#noSchengenStyle"
-
                 f.write('<Placemark>\n')
                 f.write(f'<name>{aeropuerto.codigo}</name>\n')
                 f.write(f'<styleUrl>{estilo}</styleUrl>\n')
@@ -207,10 +179,38 @@ def MapAirports(lista_aeropuertos):
                 f.write(f'<coordinates>{aeropuerto.longitud},{aeropuerto.latitud}</coordinates>\n')
                 f.write('</Point>\n')
                 f.write('</Placemark>\n')
-
             f.write('</Document>\n')
             f.write('</kml>\n')
             f.close()
             return 0
         except Exception:
             return -1
+
+
+def PlotAirlines(lista_vuelos):
+    if not lista_vuelos:
+        return None
+    conteo_aerolineas = {}
+    for vuelo in lista_vuelos:
+        compania = getattr(vuelo, 'company', 'Desconocida')
+        if compania in conteo_aerolineas:
+            conteo_aerolineas[compania] += 1
+        else:
+            conteo_aerolineas[compania] = 1
+    nombres_aerolineas = list(conteo_aerolineas.keys())
+    cantidad_vuelos = list(conteo_aerolineas.values())
+    fig = Figure(figsize=(14, 5), dpi=100)
+    ax = fig.add_subplot(111)
+    ax.bar(nombres_aerolineas, cantidad_vuelos, color='orange', edgecolor='black')
+    ax.set_title('Vuelos por Aerolínea')
+    ax.set_ylabel('Número de vuelos')
+    ax.set_xticks(range(len(nombres_aerolineas)))
+    ax.set_xticklabels(nombres_aerolineas)
+
+    for etiqueta in ax.get_xticklabels():
+        etiqueta.set_rotation(90)
+        etiqueta.set_horizontalalignment('center')
+        etiqueta.set_fontsize(8)
+
+    fig.subplots_adjust(bottom=0.25)
+    return fig

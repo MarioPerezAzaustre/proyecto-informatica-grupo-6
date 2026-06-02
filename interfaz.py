@@ -36,6 +36,7 @@ vuelos = []
 bcn_airport = None
 mi_ap = None
 
+
 def registrar_evento(mensaje):
     hora = datetime.datetime.now().strftime("%H:%M:%S")
     texto = f"[{hora}] {mensaje}\n"
@@ -195,13 +196,13 @@ def cargar_archivo():
 
     mi_ap = LoadAirportStructure("LEBL.txt")
 
-    #messagebox.showinfo("Carga",f"Se han cargado {len(mis_aeropuertos)} aeropuertos y la estructura táctica de LEBL con éxito.")
 
 def ver_mapa_diques_dinamico():
     if mi_ap is None:
         messagebox.showwarning("Sin estructura", "Primero debes cargar el archivo de datos (Cargar TXT).")
         return
     PlotTerminalPiers(mi_ap)
+
 
 def marcar_schengen():
     for apt in mis_aeropuertos:
@@ -762,13 +763,25 @@ def renderizar_en_interfaz(funcion_plot, datos):
         registrar_evento("ADVERTENCIA: Faltan datos para mostrar el gráfico solicitado.")
         messagebox.showwarning("Aviso", "Faltan datos para mostrar el gráfico.")
         return
+
     for widget in frame_grafico.winfo_children():
         widget.destroy()
+
     fig = funcion_plot(datos)
+
     if fig is None:
         tk.Label(frame_grafico, text="No se pudo generar el gráfico.", bg=color_paneles, fg=color_texto).pack(pady=20)
         registrar_evento("ERROR: La función de graficado retornó nulo.")
         return
+
+    for eje in fig.axes:
+        eje.tick_params(axis='x', labelrotation=90)
+        for etiqueta in eje.get_xticklabels():
+            etiqueta.set_rotation(90)
+            etiqueta.set_horizontalalignment('center')
+
+    fig.subplots_adjust(bottom=0.25)
+
     canvas = FigureCanvasTkAgg(fig, master=frame_grafico)
     canvas.draw()
     canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
@@ -802,6 +815,7 @@ def reproducir_cancion():
     except Exception as e:
         pass
 
+
 def mostrar_tabla_salidas():
     if not vuelos:
         registrar_evento("ADVERTENCIA: Intento de abrir tabla de salidas sin vuelos cargados.")
@@ -809,7 +823,8 @@ def mostrar_tabla_salidas():
         return
     for widget in frame_grafico.winfo_children():
         widget.destroy()
-    titulo = tk.Label(frame_grafico, text="✈️ TABLÓN DE VUELOS - SALIDAS / DEPARTURES", bg=color_paneles, fg=color_texto,
+    titulo = tk.Label(frame_grafico, text="✈️ TABLÓN DE VUELOS - SALIDAS / DEPARTURES", bg=color_paneles,
+                      fg=color_texto,
                       font=("Helvetica", 14, "bold"))
     titulo.pack(pady=10)
     frame_buscador = tk.Frame(frame_grafico, bg=color_paneles)
@@ -852,7 +867,8 @@ def mostrar_tabla_salidas():
         filtro = filtro.lower()
         contador = 0
         for v in vuelos_ordenados:
-            destino_mostrar = getattr(v, 'destination', 'LEBL (Llegada)') if hasattr(v, 'destination') else "Desconocido"
+            destino_mostrar = getattr(v, 'destination', 'LEBL (Llegada)') if hasattr(v,
+                                                                                     'destination') else "Desconocido"
             hora_mostrar = v.time if v.time else "--:--"
             if filtro in v.id.lower() or filtro in v.company.lower() or filtro in destino_mostrar.lower():
                 tag = 'par' if contador % 2 == 0 else 'impar'
@@ -861,6 +877,7 @@ def mostrar_tabla_salidas():
 
     def on_buscar(event):
         poblar_tabla(entrada_busqueda.get())
+
     entrada_busqueda.bind("<KeyRelease>", on_buscar)
     if modo_oscuro_activo:
         tabla.tag_configure('par', background="#2C3E50")
@@ -871,6 +888,7 @@ def mostrar_tabla_salidas():
     tabla.pack(expand=True, fill="both", padx=15, pady=15)
     poblar_tabla()
     registrar_evento("INFO: Tablón de salidas visualizado con buscador activo.")
+
 
 def siguiente_cancion():
     global indice_actual
@@ -953,12 +971,12 @@ tk.Button(frame_3, text="Airlines", command=lambda: renderizar_en_interfaz(PlotA
 tk.Button(frame_3, text="Schengen V.", command=lambda: renderizar_en_interfaz(PlotFlightsType, vuelos),
           **estilo_base).grid(row=1, column=1, padx=5, pady=5, sticky="nsew")
 tk.Button(frame_3, text="Tabla Arrivals", command=mostrar_tabla_arribos, **estilo_base).grid(row=2, column=0,
-                                                                                                    columnspan=1,
-                                                                                                    padx=5, pady=5,
-                                                                                                    sticky="nsew")
+                                                                                             columnspan=1,
+                                                                                             padx=5, pady=5,
+                                                                                             sticky="nsew")
 tk.Button(frame_3, text="Tabla Departures", command=mostrar_tabla_salidas, **estilo_base).grid(row=2, column=1,
-                                                                                                    padx=5, pady=5,
-                                                                                                    sticky="nsew")
+                                                                                               padx=5, pady=5,
+                                                                                               sticky="nsew")
 
 btn_tema = tk.Button(frame_3, text="🌙 Modo Oscuro", command=alternar_modo_oscuro, **estilo_base)
 btn_tema.grid(row=3, column=0, columnspan=2, padx=5, pady=5, sticky="nsew")
@@ -1041,7 +1059,11 @@ lbl_contador = tk.Label(frame_musica, text=f"0/{len(lista_musica)}", bg=color_pa
                         font=("Helvetica", 9, "bold"), width=6)
 lbl_contador.grid(row=0, column=4, padx=10, pady=5)
 
-tk.Button(frame_lebl, text="🗺️ Esquema T1",command=lambda: renderizar_en_interfaz(lambda ap: PlotTerminalPiers(ap, "T1"), bcn_airport),**estilo_base).grid(row=3, column=0, columnspan=1, padx=2, pady=4, sticky="nsew")
+tk.Button(frame_lebl, text="🗺️ Esquema T1",
+          command=lambda: renderizar_en_interfaz(lambda ap: PlotTerminalPiers(ap, "T1"), bcn_airport),
+          **estilo_base).grid(row=3, column=0, columnspan=1, padx=2, pady=4, sticky="nsew")
 
-tk.Button(frame_lebl, text="🗺️ Esquema T2",command=lambda: renderizar_en_interfaz(lambda ap: PlotTerminalPiers(ap, "T2"), bcn_airport),**estilo_base).grid(row=3, column=1, columnspan=2, padx=2, pady=4, sticky="nsew")
+tk.Button(frame_lebl, text="🗺️ Esquema T2",
+          command=lambda: renderizar_en_interfaz(lambda ap: PlotTerminalPiers(ap, "T2"), bcn_airport),
+          **estilo_base).grid(row=3, column=1, columnspan=2, padx=2, pady=4, sticky="nsew")
 root.mainloop()
